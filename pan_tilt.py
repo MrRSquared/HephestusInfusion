@@ -1,3 +1,4 @@
+
 import pixy
 from ctypes import *
 from pixy import *
@@ -92,37 +93,36 @@ Reset ()
 
 Blocks = BlockArray(1)
 Frame  = 0
-
 while 1:
   Count = pixy.ccc_get_blocks (1, Blocks)
- if Count > 0:
+  if Count > 0:
     Frame = Frame + 1
-
     # Block acquisition logic #
-    if Locked_On_Block:
+  if Locked_On_Block:
       # Find the block that we are locked to #
-      for Index in range (0, Count):
-        if Blocks[Index].m_index == Locked_Block_Index:
-          print ('Frame %3d: Locked' % (Frame))
-          Display_Block (Index, Blocks[Index])
-          Pan_Offset  = (pixy.get_frame_width () / 2) - Blocks[Index].m_x;
-          Tilt_Offset = Blocks[Index].m_y - (pixy.get_frame_height () / 2)
-
-          Pan_PID_Controller.Update (Pan_Offset)
-          Tilt_PID_Controller.Update (Tilt_Offset)
-
-          pixy.set_servos (Pan_PID_Controller.Command, Tilt_PID_Controller.Command)
-          print ('Pan Error %3d:' % (Pan_PID_Controller.Command))
-    else:
-      print ('Frame %3d:' % (Frame))
-
-      # Display all the blocks in the frame #
-      for Index in range (0, Count):
+    for Index in range (0, Count):
+      if Blocks[Index].m_index == Locked_Block_Index:
+        print ('Frame %3d: Locked' % (Frame))
         Display_Block (Index, Blocks[Index])
 
-      # Find an acceptable block to lock on to #
-      if Blocks[0].m_age > MINIMUM_BLOCK_AGE_TO_LOCK:
-        Locked_Block_Index = Blocks[0].m_index;
-        Locked_On_Block    = True
+        Pan_Offset  = (pixy.get_frame_width () / 2) - Blocks[Index].m_x
+        Tilt_Offset = Blocks[Index].m_y - (pixy.get_frame_height () / 2)
+
+        Pan_PID_Controller.Update (Pan_Offset)
+        Tilt_PID_Controller.Update (Tilt_Offset)
+
+        pixy.set_servos (Pan_PID_Controller.Command, Tilt_PID_Controller.Command)
+        print ('Pan Error %3d:' % (Pan_PID_Controller.Command))
+else:
+  print ('Frame %3d:' % (Frame))
+
+  # Display all the blocks in the frame #
+  for Index in range (0, Count):
+    Display_Block (Index, Blocks[Index])
+
+  # Find an acceptable block to lock on to #
+  if Blocks[0].m_age > MINIMUM_BLOCK_AGE_TO_LOCK:
+    Locked_Block_Index = Blocks[0].m_index
+    Locked_On_Block    = True
   else:
     Reset ()
